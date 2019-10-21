@@ -1,0 +1,8 @@
+---
+
+- hosts: tag_ubuntu
+  remote_user: ubuntu
+  tasks:
+    - include: tasks/main.yml  
+  handlers:
+    - include: handlers/handlers.yml

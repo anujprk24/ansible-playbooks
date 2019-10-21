@@ -1,0 +1,57 @@
+---
+    
+    - name: install packages
+      apt: name=nginx update_cache=yes state=latest
+      sudo: yes   
+      tags: test 
+    
+    - name: Install supervisor
+      apt: name=supervisor state=present force=yes
+      sudo: yes
+    
+    - name: ansible create directory example
+      file:
+        path: /home/ubuntu/test
+        state: directory
+    
+    - name: install pip3
+      apt: name=python3-pip update_cache=yes state=latest
+      sudo: yes
+    
+    - name: install virtual env
+      pip: 
+        name: virtualenv
+    
+    - name: Manually create the initial virtualenv
+      command: virtualenv /home/ubuntu/venv -p python3 creates="/home/ubuntu/venv"
+    
+    - git:
+        repo: ''
+        dest: /home/ubuntu/test
+        version: production
+        update: no
+    
+    - name: update Permission
+      command: chown  -R ubuntu:ubuntu /home/ubuntu/test
+    
+    - name: Activate
+      script: script.sh
+    
+    - name: Installing python libraries using requirements file in Ansible
+      pip:
+        requirements: requirements.txt
+        chdir: /home/ubuntu/test
+    
+    - name: setup uwsgi in supervisor
+      template: 
+            src=uwsgi-server.j2 
+            dest=/etc/supervisor/conf.d/uwsgi-runner.conf
+      sudo: yes
+      notify:
+        - restart nginx
+    
+    - supervisorctl:
+        name: uwsgi-runner
+        state: restarted
+        config: /etc/supervisor/supervisord.conf
+      sudo: yes
